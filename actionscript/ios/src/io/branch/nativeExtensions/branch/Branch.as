@@ -107,5 +107,9 @@ package io.branch.nativeExtensions.branch {
 
 			extensionContext.call("applyReferralCode", code);
 		}
+
+		public function registerClick(url:String):void {
+			extensionContext.call("registerClick", url);
+		}
 	}
 }

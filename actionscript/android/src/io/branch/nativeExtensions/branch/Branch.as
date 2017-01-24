@@ -114,6 +114,9 @@ package io.branch.nativeExtensions.branch {
 			extensionContext.call("applyReferralCode", code);
 		}
 
+		public function registerClick(url:String):void {
+		}
+
 		private function _deactivated(evt:Event):void {
 			removeEventListener(Event.DEACTIVATE, _deactivated);
 

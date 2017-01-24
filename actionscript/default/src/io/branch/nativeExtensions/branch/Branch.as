@@ -170,5 +170,8 @@ package io.branch.nativeExtensions.branch {
 		public function applyReferralCode(code:String):void {
 
 		}
+
+		public function registerClick(url:String):void {
+		}
 	}
 }

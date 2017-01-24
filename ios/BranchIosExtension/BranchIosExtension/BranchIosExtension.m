@@ -21,13 +21,19 @@
 TypeConversion* typeConverter;
 BranchHelpers* branchHelpers;
 
+NSUserActivity* clickedLinkUserActivity;
+
 DEFINE_ANE_FUNCTION(init) {
     
     uint32_t useTestKey;
     FREGetObjectAsBool(argv[0], &useTestKey);
-    
+
+    Branch *branch = useTestKey ? [Branch getTestInstance] : [Branch getInstance];
+
+    [branch continueUserActivity:clickedLinkUserActivity];
+
     [branchHelpers initBranch:useTestKey];
-    
+
     return NULL;
 }
 
@@ -186,6 +192,20 @@ DEFINE_ANE_FUNCTION(validateReferralCode) {
     return NULL;
 }
 
+DEFINE_ANE_FUNCTION(registerClick) {
+    NSString* input;
+    [typeConverter FREGetObject:argv[0] asString:&input];
+
+    NSString *urlString = [input stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+
+    NSURL *url = [NSURL URLWithString:urlString];
+
+    clickedLinkUserActivity = [[NSUserActivity alloc]initWithActivityType:NSUserActivityTypeBrowsingWeb];
+    clickedLinkUserActivity.webpageURL = url;
+
+    return NULL;
+}
+
 DEFINE_ANE_FUNCTION(applyReferralCode) {
     
     NSString* code;
@@ -198,10 +218,8 @@ DEFINE_ANE_FUNCTION(applyReferralCode) {
 
 bool applicationDidFinishLaunchingWithOptions(id self, SEL _cmd, UIApplication* application, NSDictionary* launchOptions) {
     //NSLog(@"applicationDidFinishLaunchingWithOptions");
-    
     Branch *branch = [Branch getInstance];
     [branch initSessionWithLaunchOptions:launchOptions andRegisterDeepLinkHandler:^(NSDictionary *params, NSError *error) {
-        
         if (!error) {
             
             NSString *JSONString = [TypeConversion ConvertNSDictionaryToJSONString:params];
@@ -219,7 +237,7 @@ bool applicationDidFinishLaunchingWithOptions(id self, SEL _cmd, UIApplication* 
 
 bool applicationOpenURLSourceApplication(id self, SEL _cmd, UIApplication* application, NSURL* url, NSString* sourceApplication, id annotation) {
     //NSLog(@"applicationOpenURLSourceApplication");
-    
+
     // if handleDeepLink returns YES, and you registered a callback in initSessionAndRegisterDeepLinkHandler, the callback will be called with the data associated with the deep link
     if (![[Branch getInstance] handleDeepLink:url]) {
         // do other deep link routing for the Facebook SDK, Pinterest SDK, etc
@@ -230,23 +248,23 @@ bool applicationOpenURLSourceApplication(id self, SEL _cmd, UIApplication* appli
 
 bool applicationContinueUserActivity(id self, SEL _cmd, UIApplication* application, NSUserActivity* userActivity, id restorationHandler) {
     //NSLog(@"applicationContinueUserActivity");
-    
+
+   
     BOOL handledByBranch = [[Branch getInstance] continueUserActivity:userActivity];
     
     return handledByBranch;
 }
 
 void BranchContextInitializer(void* extData, const uint8_t* ctxType, FREContext ctx, uint32_t* numFunctionsToSet, const FRENamedFunction** functionsToSet) {
-    
     id delegate = [[UIApplication sharedApplication] delegate];
     
     Class objectClass = object_getClass(delegate);
     
     NSString *newClassName = [NSString stringWithFormat:@"Custom_%@", NSStringFromClass(objectClass)];
+  
     Class  modDelegate = NSClassFromString(newClassName);
     
     if (modDelegate == nil) {
-        
         modDelegate = objc_allocateClassPair(objectClass, [newClassName UTF8String], 0);
         
         SEL selectorToOverride1 = @selector(application:openURL:sourceApplication:annotation:);
@@ -280,6 +298,7 @@ void BranchContextInitializer(void* extData, const uint8_t* ctxType, FREContext 
         MAP_FUNCTION(getReferralCode, NULL),
         MAP_FUNCTION(createReferralCode, NULL),
         MAP_FUNCTION(validateReferralCode, NULL),
+        MAP_FUNCTION(registerClick, NULL),
         MAP_FUNCTION(applyReferralCode, NULL)
     };
     
