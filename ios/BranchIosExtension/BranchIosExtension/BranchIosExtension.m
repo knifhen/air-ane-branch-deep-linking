@@ -267,15 +267,15 @@ void BranchContextInitializer(void* extData, const uint8_t* ctxType, FREContext 
     if (modDelegate == nil) {
         modDelegate = objc_allocateClassPair(objectClass, [newClassName UTF8String], 0);
         
-        SEL selectorToOverride1 = @selector(application:openURL:sourceApplication:annotation:);
+//        SEL selectorToOverride1 = @selector(application:openURL:sourceApplication:annotation:);
         SEL selectorToOverride2 = @selector(application:didFinishLaunchingWithOptions:);
         SEL selectorToOverride3 = @selector(application:continueUserActivity:restorationHandler:);
         
-        Method m1 = class_getInstanceMethod(objectClass, selectorToOverride1);
+//        Method m1 = class_getInstanceMethod(objectClass, selectorToOverride1);
         Method m2 = class_getInstanceMethod(objectClass, selectorToOverride2);
         Method m3 = class_getInstanceMethod(objectClass, selectorToOverride3);
         
-        class_addMethod(modDelegate, selectorToOverride1, (IMP)applicationOpenURLSourceApplication, method_getTypeEncoding(m1));
+//        class_addMethod(modDelegate, selectorToOverride1, (IMP)applicationOpenURLSourceApplication, method_getTypeEncoding(m1));
         class_addMethod(modDelegate, selectorToOverride2, (IMP)applicationDidFinishLaunchingWithOptions, method_getTypeEncoding(m2));
         class_addMethod(modDelegate, selectorToOverride3, (IMP)applicationContinueUserActivity, method_getTypeEncoding(m3));
         
